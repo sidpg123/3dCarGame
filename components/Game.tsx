@@ -1,8 +1,10 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
+
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Physics, useBox, usePlane, useSphere } from "@react-three/cannon";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
+import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
 // Vehicle Component
@@ -16,13 +18,12 @@ const Vehicle: React.FC<{
     position,
     onCollide: (e) => handleCollision(e),
   }));
-  
+
   useEffect(() => {
     // Subscribe to the vehicle's position updates directly from the physics API
     const unsubscribe = api.position.subscribe((newPosition) => {
       setVehiclePosition([newPosition[0], newPosition[1], newPosition[2]]);
     });
-    
 
     // Cleanup the subscription when the component unmounts
     return () => unsubscribe();
@@ -159,7 +160,8 @@ const Ground: React.FC = () => {
 };
 
 // Game Component
-const Game: React.FC = () => {
+
+const GameScene: React.FC = () => {
   const [shapes, setShapes] = useState<
     { id: number; position: [number, number, number] }[]
   >([]);
@@ -167,69 +169,102 @@ const Game: React.FC = () => {
   const [score, setScore] = useState(0);
   const [vehiclePosition, setVehiclePosition] = useState<
     [number, number, number]
-  >([0, 0, 0]); // Track vehicle position
+  >([0, 3, 0]); // Track vehicle position
 
   const handleGameOver = () => {
     setGameOver(true);
   };
+  const lastUpdateTime = useRef(Date.now());
 
-  useEffect(() => {
+  const spawnShape = useCallback(() => {
+    const spawnRadius = 15; // Adjust this value to change the spawn area
+    const angle = Math.random() * Math.PI * 2; // Random angle around the vehicle
+    const distance = Math.random() * spawnRadius; // Random distance within the spawn radius
+
+    const randomX = vehiclePosition[0] + Math.cos(angle) * distance;
+    const randomZ = vehiclePosition[2] + Math.sin(angle) * distance;
+
+    const spawnHeight = 20; // Ensure the shape spawns above the vehicle
     if (!gameOver) {
-      const interval = setInterval(() => {
-        setShapes((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            position: [
-              Math.random() * 20 - 10, // Spawn near vehicle
-              20,
-              Math.random() * 20 - 10, // Spawn near vehicle
-            ],
-          },
-        ]);
-        setScore((prev) => prev + 1);
-      }, 2000);
-
-      return () => clearInterval(interval);
+      setShapes((prev) => [
+        ...prev,
+        { id: Date.now(), position: [randomX, spawnHeight, randomZ] },
+      ]);
+      setScore((prev) => prev + 1);
     }
-  }, [gameOver]);
+  }, [vehiclePosition]);
+
+  const cleanupShapes = useCallback(() => {
+    const maxDistance = 50; // Maximum distance before removing a shape
+    setShapes((prev) =>
+      prev.filter((shape) => {
+        const dx = shape.position[0] - vehiclePosition[0];
+        const dz = shape.position[2] - vehiclePosition[2];
+        const distance = Math.sqrt(dx * dx + dz * dz);
+        return distance <= maxDistance;
+      })
+    );
+  }, [vehiclePosition]);
+
+  useFrame(() => {
+    const now = Date.now();
+    if (now - lastUpdateTime.current > 2000) {
+      spawnShape();
+      cleanupShapes();
+      lastUpdateTime.current = now;
+    }
+  });
 
   return (
-    <div className="h-screen w-full">
-      <Canvas shadows>
-        <PerspectiveCamera makeDefault position={[0, 10, 10]} />
-        <OrbitControls />
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} castShadow />
-        <Physics>
-          <Vehicle
-            position={[0, 3, 0]}
-            onGameOver={handleGameOver}
-            setVehiclePosition={setVehiclePosition}
-          />
-          <Ground />
-          {!gameOver &&
-            shapes.map((shape) => (
-              <FallingShape key={shape.id} position={shape.position} />
-            ))}
-        </Physics>
-      </Canvas>
+    <>
+      <PerspectiveCamera makeDefault position={[0, 10, 10]} />
+      <OrbitControls />
+      <ambientLight intensity={0.5} />
+      <pointLight position={[10, 10, 10]} castShadow />
+      <Physics>
+        <Vehicle
+          position={[0, 3, 0]}
+          onGameOver={handleGameOver}
+          setVehiclePosition={setVehiclePosition}
+        />
+        <Ground />
+        {!gameOver &&
+          shapes.map((shape) => (
+            <FallingShape key={shape.id} position={shape.position} />
+          ))}
+      </Physics>
+      {/* Render game-over message inside Canvas using Html */}
       {gameOver && (
-        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-8 rounded">
-            <h2 className="text-2xl font-bold mb-4  text-red-600">Game Over</h2>
-            <p className="text-xl text-gray-800">Your score: {score}</p>
-            <button
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
-              onClick={() => window.location.reload()}
-            >
-              Play Again
-            </button>
+        <Html center>
+          <div className="game-over-screen ">
+            <div className="bg-white p-8 rounded  ">
+              <h2 className="text-2xl font-bold mb-4 text-red-600">
+                Game Over
+              </h2>
+              <p className="text-xl text-gray-800">Your score: {score}</p>
+              <button
+                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+                onClick={() => window.location.reload()}
+              >
+                Play Again
+              </button>
+            </div>
           </div>
-        </div>
+        </Html>
       )}
+    </>
+  );
+};
+
+const Game = () => {
+  return (
+    <div className="h-screen w-full relative">
+      <Canvas shadows>
+        <GameScene />
+      </Canvas>
+      {/* Render the score outside the Canvas */}
       <div className="absolute top-4 left-4 text-white text-2xl">
-        Score: {score}
+        {/* Score: {score} */}
       </div>
     </div>
   );
