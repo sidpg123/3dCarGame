@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/cannon";
-import { v4 as uuidv4 } from "uuid";
+// import { v4 as uuidv4 } from "uuid";
 import { useFrame } from "@react-three/fiber";
 import GameContext, { useGameContext } from "../context/GameContext";
 import Vehicle from "./Vehicle";
@@ -18,7 +18,8 @@ const GameScene: React.FC = () => {
   const [vehiclePosition, setVehiclePosition] = useState<
     [number, number, number]
   >([0, 3, 0]);
-
+  // const ref = useRef<THREE.Mesh>(null!);
+  
   const lastUpdateTime = useRef(Date.now());
   const handleGameOver = () => {
     setGameOver(true);
@@ -39,7 +40,7 @@ const GameScene: React.FC = () => {
     const spawnHeight = 20;
 
     const newShape: Shape = {
-      id: uuidv4(),
+      id: Date.now() as unknown as string,
       type: randomType,
       position: [randomX, spawnHeight, randomZ],
       size: randomSize,
@@ -48,6 +49,7 @@ const GameScene: React.FC = () => {
     
     if(!gameOver) {
       setShapes((prev) => [...prev, newShape]);
+      //@ts-ignore
       setScore((prev) => prev + 1);
     }
 
@@ -84,7 +86,7 @@ const GameScene: React.FC = () => {
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[0, 15, 30]} />
+      <PerspectiveCamera makeDefault position={[0, 15, 33]} />
       <OrbitControls />
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} castShadow />

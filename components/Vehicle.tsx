@@ -10,7 +10,7 @@ const Vehicle: React.FC<{
   onGameOver: () => void;
   setVehiclePosition: (pos: [number, number, number]) => void;
 }> = ({ position, onGameOver, setVehiclePosition }) => {
-  const [ref, api] = useBox(() => ({
+  const [ref, api] = useBox<THREE.Group>(() => ({
     mass: 500,
     position,
     onCollide: (e) => handleCollision(e),
