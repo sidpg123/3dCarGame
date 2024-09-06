@@ -1,5 +1,5 @@
 // types.ts
-export type ShapeType = "cube" | "sphere" | "pyramid" | "mars" | "jupiter" | "venus" | "moon" | ;
+export type ShapeType = "cube" | "sphere" | "pyramid" | "mars" | "jupiter" | "pluto" | "moon";
 
 export interface Shape {
   id: string;

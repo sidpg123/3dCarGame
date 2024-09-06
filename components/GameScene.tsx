@@ -25,7 +25,7 @@ const GameScene: React.FC = () => {
     setGameOver(true);
   };
   const spawnShape = useCallback(() => {
-    const shapeTypes: ShapeType[] = ["cube", "sphere", "pyramid", "mars", "jupiter"];
+    const shapeTypes: ShapeType[] = ["cube", "sphere", "pyramid", "mars", "jupiter", "pluto", "moon"];
     const randomType =
       shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
     const randomSize =  Math.floor(Math.random() * 5);; // Size between 0.5 and 1.5

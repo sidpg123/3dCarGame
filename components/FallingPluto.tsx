@@ -9,9 +9,9 @@ interface FallingSphereProps {
   shape: Shape;
 }
 
-const FallingMars: React.FC<FallingSphereProps> = ({ shape }) => {
+const FallingPluto: React.FC<FallingSphereProps> = ({ shape }) => {
   // Ensure the texture file is located in the /public directory
-  const colorMap = useLoader(TextureLoader, '/marsmap1k.jpg');
+  const colorMap = useLoader(TextureLoader, '/plutomap2k.jpg');
 
   const [ref] = useSphere<THREE.Mesh>(() => ({
     mass: shape.mass,
@@ -27,5 +27,5 @@ const FallingMars: React.FC<FallingSphereProps> = ({ shape }) => {
   );
 };
 
-export default FallingMars;
+export default FallingPluto;
   

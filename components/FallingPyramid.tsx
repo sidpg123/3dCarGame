@@ -4,13 +4,13 @@ import { useBox } from "@react-three/cannon";
 import { Shape } from "../utils/types";
 import { useLoader } from "@react-three/fiber";
 import { TextureLoader } from "three/src/loaders/TextureLoader.js";
-
+import * as THREE from "three"
 interface FallingCubeProps {
   shape: Shape;
 }
 
 const FallingCube: React.FC<FallingCubeProps> = ({ shape }) => {
-  const [ref] = useBox(() => ({
+  const [ref] = useBox<THREE.Mesh>(() => ({
     mass: shape.mass,
     position: shape.position,
     args: [shape.size + 1, shape.size + 1, shape.size + 1],
